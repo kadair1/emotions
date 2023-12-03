@@ -14,13 +14,14 @@ def index():
     """Return the index.html page."""
     return app.send_static_file('index.html')
 
-
+system_prompt = "What emotion are you observing in the image? Ignore the lighting, blurriniess, and conditions in the background. Use the emotion to inform your response to the user's question. In your response, tell the user what emotion you are detecting in the image before providing a response. Your recommendation and suggestion should help the guide the user to their goal while also detecting the emotion you are detecting in the image."
 @app.route('/process_image', methods=['POST'])
 def process_image():
     data = request.json
     base64_image = data.get('image', '')
+    user_text = data.get('user_text', '')
 
-    if base64_image:
+    if base64_image and user_text:
         api_key = DEFAULT_API_KEY
         headers = {
             "Content-Type": "application/json",
@@ -31,11 +32,15 @@ def process_image():
             "model": "gpt-4-vision-preview",
             "messages": [
                 {
+                    "role": "system",
+                    "content": system_prompt
+                },
+                {
                     "role": "user",
                     "content": [
                         {
                             "type": "text",
-                            "text": "What’s in this image? Be descriptive. For each significant item recognized, wrap this word in <b> tags. Example: The image shows a <b>man</b> in front of a neutral-colored <b>wall</b>. He has short hair, wears <b>glasses</b>, and is donning a pair of over-ear <b>headphones</b>. ... Also output an itemized list of objects recognized, wrapped in <br> and <b> tags with label <br><b>Objects:."
+                            "text": user_text
                         },
                         {
                             "type": "image_url",
@@ -60,8 +65,8 @@ def process_image():
         return response.content
 
     else:
-        return jsonify({'error': 'No image data received.'}), 400
+        return jsonify({'error': 'No image data or user text received.'}), 400
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)

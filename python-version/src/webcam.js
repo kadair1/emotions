@@ -26,12 +26,14 @@ function captureImage() {
 function processImage(base64Image) {
     toggleLoader(true); // Show the loader
 
+    const userText = document.getElementById('user-text').value;
+
     fetch('process_image', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ image: base64Image })
+        body: JSON.stringify({ image: base64Image, user_text: userText })
     })
     .then(response => response.json())
     .then(handleResponse)
